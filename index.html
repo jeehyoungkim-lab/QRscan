@@ -71,9 +71,9 @@
         // { facingMode: "user" }는 노트북/전면 카메라, "environment"는 모바일 후면입니다.
         // 둘 다 대응하기 위해 간단한 호출 방식을 사용합니다.
         html5QrCode.start(
-            { facingMode: { ideal: "environment" } }, // 후면을 선호하되 없으면 기본 카메라
-            config, 
-            onScanSuccess
+             { facingMode: "environment" }, // 후면 카메라 우선
+                config,
+                onScanSuccess
         ).then(() => { 
             isCameraOpen = true; 
         }).catch(err => {
