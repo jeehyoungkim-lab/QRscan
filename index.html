@@ -59,7 +59,7 @@
         }
     }
 
-    function startScanning() {
+        function startScanning() {
         if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
         
         readerDiv.style.display = 'block';
@@ -67,13 +67,21 @@
         
         const config = { fps: 10, qrbox: { width: 250, height: 250 } };
         
-        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
-            .then(() => { isCameraOpen = true; })
-            .catch(err => {
-                alert("카메라 권한을 허용해 주세요!");
-                readerDiv.style.display = 'none';
-            });
+        // { facingMode: "user" }는 노트북/전면 카메라, "environment"는 모바일 후면입니다.
+        // 둘 다 대응하기 위해 간단한 호출 방식을 사용합니다.
+        html5QrCode.start(
+            { facingMode: { ideal: "environment" } }, // 후면을 선호하되 없으면 기본 카메라
+            config, 
+            onScanSuccess
+        ).then(() => { 
+            isCameraOpen = true; 
+        }).catch(err => {
+            console.error("카메라 시작 실패:", err);
+            alert("카메라를 켤 수 없습니다. 브라우저 주소창 왼쪽의 '자물쇠' 아이콘을 눌러 카메라 권한을 '허용'으로 바꿔주세요!");
+            readerDiv.style.display = 'none';
+        });
     }
+
 
     function stopScanning() {
         if (html5QrCode && isCameraOpen) {
