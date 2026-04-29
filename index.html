@@ -3,29 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>학술대회 출입 관리1</title>
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
-
+    <title>학술대회 출입 관리</title>
+    <!-- ✅ 수정된 라이브러리 경로 -->
+    <script src="https://unpkg.com"></script>
     <style>
         body { font-family: -apple-system, sans-serif; background: #f4f7f9; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
         .container { max-width: 400px; width: 90%; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
-        
-        /* 클릭 가능한 타이틀 스타일 */
-        .clickable-title { 
-            color: #1a73e8; 
-            font-size: 1.8rem; 
-            margin-bottom: 10px; 
-            cursor: pointer; 
-            transition: transform 0.2s;
-            display: inline-block;
-        }
+        .clickable-title { color: #1a73e8; font-size: 1.8rem; margin-bottom: 10px; cursor: pointer; transition: transform 0.2s; display: inline-block; }
         .clickable-title:active { transform: scale(0.95); }
         .hint { color: #888; font-size: 0.9rem; margin-bottom: 20px; }
-
-        /* 카메라 영역 - 처음엔 숨김 */
         #reader { width: 100%; border-radius: 15px; overflow: hidden; display: none; background: #fafafa; }
-        
-        #result-status { margin-top: 20px; padding: 15px; border-radius: 10px; font-weight: bold; display: none; }
+        #result-status { margin-top: 20px; padding: 15px; border-radius: 10px; font-weight: bold; display: none; text-align: center; word-break: break-all; }
         .success { background: #e6f4ea; color: #1e8e3e; }
         .error { background: #fce8e6; color: #d93025; }
     </style>
@@ -33,16 +21,13 @@
 <body>
 
 <div class="container">
-    <!-- 이 부분을 클릭하면 카메라가 켜집니다 -->
-    <h1 class="clickable-title" onclick="toggleCamera()">학술대회 출입 체크1</h1>
+    <h1 class="clickable-title" onclick="toggleCamera()">학술대회 출입 체크</h1>
     <p id="msg" class="hint">위 글자를 클릭하여 카메라를 켜주세요.</p>
-    
     <div id="reader"></div>
     <div id="result-status"></div>
 </div>
 
 <script>
-    // ⚠️ 본인의 정보로 수정
     const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/1olq2XpP1FGMV9xm251eTghXa60b-6VPeN7v0aS9HEAA/formResponse";
     const ENTRY_ID = "entry.464667701";
 
@@ -53,36 +38,30 @@
     const msgPara = document.getElementById('msg');
 
     function toggleCamera() {
-        if (!isCameraOpen) {
-            startScanning();
-        } else {
-            stopScanning();
-        }
+        if (!isCameraOpen) { startScanning(); } 
+        else { stopScanning(); }
     }
 
-        function startScanning() {
+    function startScanning() {
         if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
-        
         readerDiv.style.display = 'block';
-        msgPara.innerText = "QR 코드를 스캔해 주세요 (글자 클릭 시 종료)";
+        statusDiv.style.display = 'none';
         
         const config = { fps: 10, qrbox: { width: 250, height: 250 } };
         
-        // { facingMode: "user" }는 노트북/전면 카메라, "environment"는 모바일 후면입니다.
-        // 둘 다 대응하기 위해 간단한 호출 방식을 사용합니다.
+        // 노트북과 아이패드 모두 잘 작동하는 설정
         html5QrCode.start(
-             { facingMode: "environment" }, // 후면 카메라 우선
-                config,
-                onScanSuccess
+            { facingMode: { ideal: "environment" } }, 
+            config, 
+            onScanSuccess
         ).then(() => { 
-            isCameraOpen = true; 
+            isCameraOpen = true;
+            msgPara.innerText = "QR 코드를 스캔해 주세요 (글자 클릭 시 종료)";
         }).catch(err => {
-            console.error("카메라 시작 실패:", err);
-            alert("카메라를 켤 수 없습니다. 브라우저 주소창 왼쪽의 '자물쇠' 아이콘을 눌러 카메라 권한을 '허용'으로 바꿔주세요!");
+            alert("카메라를 켤 수 없습니다. 브라우저의 카메라 권한을 확인해주세요.");
             readerDiv.style.display = 'none';
         });
     }
-
 
     function stopScanning() {
         if (html5QrCode && isCameraOpen) {
@@ -118,6 +97,5 @@
             });
     }
 </script>
-
 </body>
 </html>
