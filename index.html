@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학술대회 출입 관리 시스템</title>
+    <!-- QR 스캔 라이브러리 -->
+    <script src="https://unpkg.com"></script>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
+        .container { max-width: 500px; width: 100%; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        h1 { color: #1a73e8; font-size: 1.5rem; margin-bottom: 10px; }
+        #reader { width: 100%; border-radius: 10px; overflow: hidden; border: none !important; }
+        #result-status { margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: bold; display: none; }
+        .success { background: #e6f4ea; color: #1e8e3e; display: block !important; }
+        .error { background: #fce8e6; color: #d93025; display: block !important; }
+        .loading-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite; margin: 10px auto; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>학술대회 출입 체크</h1>
+    <p>참석자 명찰의 QR 코드를 스캔해 주세요.</p>
+    
+    <!-- 스캔 화면 -->
+    <div id="reader"></div>
+    
+    <div id="loading" class="loading-spinner"></div>
+    <div id="result-status"></div>
+</div>
+
+<script>
+    // ⚠️ 아래 정보만 본인의 구글 설문지 정보로 수정하세요!
+    const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/1olq2XpP1FGMV9xm251eTghXa60b-6VPeN7v0aS9HEAA/formResponse";
+    const ENTRY_ID = "entry.464667701"; // 설문지 항목의 고유 ID
+
+    const html5QrCode = new Html5Qrcode("reader");
+    const statusDiv = document.getElementById('result-status');
+    const loadingSpinner = document.getElementById('loading');
+    let isScanning = true;
+
+    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+        if (!isScanning) return;
+        
+        isScanning = false; // 중복 스캔 방지
+        html5QrCode.pause(); // 스캔 일시 정지
+        
+        // 상태 표시
+        statusDiv.className = '';
+        statusDiv.innerText = "전송 중...";
+        statusDiv.style.display = 'block';
+        loadingSpinner.style.display = 'block';
+
+        // 구글 설문지로 전송 (CORS 이슈를 피하기 위해 mode: 'no-cors' 사용)
+        const sendUrl = `${GOOGLE_FORM_URL}?${ENTRY_ID}=${encodeURIComponent(decodedText)}&submit=Submit`;
+
+        fetch(sendUrl, { mode: 'no-cors' })
+            .then(() => {
+                showStatus("✅ 체크인 완료: " + decodedText, "success");
+                setTimeout(restartScan, 2000); // 2초 후 다시 스캔 시작
+            })
+            .catch(err => {
+                showStatus("❌ 오류 발생. 다시 시도해주세요.", "error");
+                setTimeout(restartScan, 2000);
+            });
+    };
+
+    function showStatus(msg, className) {
+        statusDiv.innerText = msg;
+        statusDiv.className = className;
+        loadingSpinner.style.display = 'none';
+    }
+
+    function restartScan() {
+        statusDiv.style.display = 'none';
+        isScanning = true;
+        html5QrCode.resume();
+    }
+
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
+</script>
+
+</body>
+</html>
